@@ -1,0 +1,117 @@
+#!/bin/sh
+
+export POSIXLY_CORRECT=yes
+export LC_NUMERIC=en_US.UTF-8
+
+print_help()
+{
+    echo "NATer"
+}
+
+LOG_FILES=""
+COMPRIMATED_LOG_FILES=""
+
+LISTING_COMMAND=""
+STATUS_COMMAND=""
+PROFIT_COMMAND=""
+
+AFTER_TIME=""
+BEFORE_TIME=""
+CURRENT_CURRENCY=""
+CURRENCY=""
+
+HELP=""
+DATE_TIME=""
+
+USER_NAME=""
+
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+    
+    list | list-currency)
+        LISTING_COMMAND="$1"
+        shift
+    ;;
+
+    status)
+        STATUS_COMMAND="$1"
+        shift
+    ;;
+
+    profit)
+        PROFIT_COMMAND="$1"
+        shift
+    ;;
+
+    -a)
+        AFTER_TIME="$1"
+        DATE_TIME="$2"
+        shift
+        shift
+        ;;
+    
+    -b)
+        BEFORE_TIME="$1"
+        DATE_TIME="$2"
+        shift
+        shift
+        ;;
+    
+    -c)
+        CURRENT_CURRENCY="$1"
+        CURRENCY="$2"
+        shift
+        shift
+        ;;
+    
+    -h)
+        HELP="$1"
+        shift
+        ;;
+    
+    --help)
+        HELP="$1"
+        shift
+        ;;
+
+    *)
+        if [ -n "$1" ] && [ -f "$1" ]; then
+            if [[ "$1" == *.gz ]]; then
+                COMPRIMATED_LOG_FILES="$1"
+            else
+                LOG_FILES="$1"
+            fi
+        else
+            USER_NAME="$1"
+        fi
+
+    esac
+done
+
+if [ -z "$HELP" ] && [ -z "$CURRENT_CURRENCY" ] && [ -z "$BEFORE_TIME" ] && [ -z "$AFTER_TIME" ] && [ -z "$PROFIT_COMMAND" ] && [ -z "$STATUS_COMMAND" ] && [ -z "$LISTING_COMMAND" ]; then
+    
+    if [ -z "$USER_NAME" ]; then
+        echo "Error input occured"
+    else
+        READ_INPUT="cat $LOG_FILES | grep $USER_NAME"
+        echo "$READ_INPUT"
+    fi
+fi
+
+
+
+if [ "$HELP" = "-h" ] || [ "$HELP" = "-h" ]; then
+    print_help
+    exit
+fi
+
+
+
+
+READ_INPUT="gzip -d -c $COMPRIMATED_LOG_FILES | cat $LOG_FILES - | sort"
+
+READ_FILTERED="eval $READ_INPUT | awk -F ';' 'if(\$1 > $DATE_TIME &&) {print \$0}'"
+
+
+
