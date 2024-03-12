@@ -20,6 +20,8 @@ BEFORE_TIME=""
 CURRENT_CURRENCY=""
 CURRENCY=""
 
+FILTER=""
+
 HELP=""
 DATE_TIME=""
 
@@ -46,48 +48,56 @@ while [ "$#" -gt 0 ]; do
 
     -a)
         AFTER_TIME="$1"
-        DATE_TIME="$2"
+        FILTER="$1"
         shift
+        DATE_TIME="$1"
         shift
-        ;;
+    ;;
     
     -b)
         BEFORE_TIME="$1"
-        DATE_TIME="$2"
+        FILTER="$1"
         shift
+        DATE_TIME="$1"
         shift
-        ;;
+    ;;
     
     -c)
         CURRENT_CURRENCY="$1"
-        CURRENCY="$2"
+        FILTER="$1"
         shift
+        CURRENCY="$1"
         shift
-        ;;
+    ;;
     
     -h)
         HELP="$1"
         shift
-        ;;
+    ;;
     
     --help)
         HELP="$1"
         shift
-        ;;
+    ;;
+
+    *.gz)
+        COMPRIMATED_LOG_FILES="$1"
+        shift
+    ;;
 
     *)
-        if [ -n "$1" ] && [ -f "$1" ]; then
-            if [[ "$1" == *.gz ]]; then
-                COMPRIMATED_LOG_FILES="$1"
-            else
-                LOG_FILES="$1"
-            fi
+        if [ -n "$1" ] && [ -f "$1" ]; then  
+            LOG_FILES="$1"
+            shift
         else
             USER_NAME="$1"
+            shift
         fi
+    ;;
 
     esac
 done
+
 
 if [ -z "$HELP" ] && [ -z "$CURRENT_CURRENCY" ] && [ -z "$BEFORE_TIME" ] && [ -z "$AFTER_TIME" ] && [ -z "$PROFIT_COMMAND" ] && [ -z "$STATUS_COMMAND" ] && [ -z "$LISTING_COMMAND" ]; then
     
@@ -97,6 +107,62 @@ if [ -z "$HELP" ] && [ -z "$CURRENT_CURRENCY" ] && [ -z "$BEFORE_TIME" ] && [ -z
         READ_INPUT="cat $LOG_FILES | grep $USER_NAME"
         echo "$READ_INPUT"
     fi
+fi
+
+
+
+if [ "$LISTING_COMMAND" = "list" ]; then
+
+    case "$FILTER" in
+
+    -a)
+        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+
+    -b)
+        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 < date' $LOG_FILES | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+
+    -c)
+        READ_INPUT=$(cat $LOG_FILES | grep $CURRENCY | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+
+    *)
+        READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+    esac
+
+fi
+
+if [ "$LISTING_COMMAND" = "list-currency" ]; then
+
+    case "$FILTER" in
+
+    -a)
+        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+
+    -b)
+        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 < date' $LOG_FILES | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+
+    -c)
+        READ_INPUT=$(cat $LOG_FILES | grep $CURRENCY | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+
+    *)
+        READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME)
+        echo "$READ_INPUT"
+        ;;
+    esac
+
 fi
 
 
