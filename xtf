@@ -142,25 +142,11 @@ if [ "$LISTING_COMMAND" = "list-currency" ]; then
 
     case "$FILTER" in
 
-    -a)
-        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES | grep $USER_NAME)
-        echo "$READ_INPUT"
-        ;;
-
-    -b)
-        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 < date' $LOG_FILES | grep $USER_NAME)
-        echo "$READ_INPUT"
-        ;;
-
-    -c)
-        READ_INPUT=$(cat $LOG_FILES | grep $CURRENCY | grep $USER_NAME)
-        echo "$READ_INPUT"
-        ;;
-
     *)
-        READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME)
+        READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME | awk -F ';' '{print $3}' | uniq)
         echo "$READ_INPUT"
-        ;;
+    ;;
+
     esac
 
 fi
