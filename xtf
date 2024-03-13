@@ -27,6 +27,8 @@ DATE_TIME=""
 
 USER_NAME=""
 
+SUM=""
+
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -146,12 +148,42 @@ if [ "$LISTING_COMMAND" = "list-currency" ]; then
         READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME | awk -F ';' '{print $3}' | uniq)
         echo "$READ_INPUT"
     ;;
-
     esac
-
 fi
 
+if [ "$STATUS_COMMAND" = "status" ]; then
 
+    case "$FILTER" in
+
+    -a)
+        if [ -z "$LOG_FILES" ]; then
+            echo "error"
+            exit 0
+        fi
+        #echo $LOG_FILES | awk -F ';' '{my_dict[$3] = $4} END {for (key in my_dict) {printf "%s : %f\n", key, my_dict[key]}}'
+        #READ_INPUT=$(awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES | grep $USER_NAME | awk -F ';' '{sum += $4} {print sum}')
+        awk -F ';' '{my_dict[$3] = $4} 
+        END { 
+        for (key in my_dict) 
+        { 
+            printf "%s : %.4f\n", key, my_dict[key] 
+        } 
+        }' "$LOG_FILES"
+        
+    ;;
+
+    -b)
+    ;;
+
+    -c)
+    ;;
+
+    *)
+        READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME | awk -F ';' '{print $3}' | uniq)
+        echo "$READ_INPUT"
+    ;;
+    esac
+fi
 
 if [ "$HELP" = "-h" ] || [ "$HELP" = "-h" ]; then
     print_help
