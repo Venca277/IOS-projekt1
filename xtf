@@ -27,7 +27,7 @@ DATE_TIME=""
 
 USER_NAME=""
 
-SUM=""
+filtered_file=""
 
 
 while [ "$#" -gt 0 ]; do
@@ -160,19 +160,32 @@ if [ "$STATUS_COMMAND" = "status" ]; then
             echo "error"
             exit 0
         fi
+        #READ_INPUT=$(grep $USER_NAME | awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES)
         #echo $LOG_FILES | awk -F ';' '{my_dict[$3] = $4} END {for (key in my_dict) {printf "%s : %f\n", key, my_dict[key]}}'
         #READ_INPUT=$(awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES | grep $USER_NAME | awk -F ';' '{sum += $4} {print sum}')
-        awk -F ';' '{my_dict[$3] = $4} 
+        #awk -F ';' '$1 == "$" {sum += $4} END {print sum}' "$LOG_FILES"
+
+        filtered_file=$(awk -F ';' -v user="$USER_NAME" '$1 != "" && $2 >= "$DATE_TIME" && $3 == user' "$LOG_FILES")
+
+        echo "$filtered_file" | awk -F ';' '{my_dict[$3] += $4} 
         END { 
         for (key in my_dict) 
         { 
-            printf "%s : %.4f\n", key, my_dict[key] 
+            printf "%s : %.4f\n", key, my_dict[key]
         } 
         }' "$LOG_FILES"
         
     ;;
 
     -b)
+        if [ -z "$LOG_FILES" ]; then
+            echo "error"
+            exit 0
+        fi
+
+
+
+
     ;;
 
     -c)
@@ -196,6 +209,8 @@ fi
 READ_INPUT="gzip -d -c $COMPRIMATED_LOG_FILES | cat $LOG_FILES - | sort"
 
 READ_FILTERED="eval $READ_INPUT | awk -F ';' 'if(\$1 > $DATE_TIME &&) {print \$0}'"
+
+
 
 
 
