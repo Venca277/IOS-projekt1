@@ -161,12 +161,6 @@ if [ "$STATUS_COMMAND" = "status" ]; then
             exit 0
         fi
 
-        #READ_INPUT=$(grep $USER_NAME | awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES)
-        #echo $LOG_FILES | awk -F ';' '{my_dict[$3] = $4} END {for (key in my_dict) {printf "%s : %f\n", key, my_dict[key]}}'
-        #READ_INPUT=$(awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES | grep $USER_NAME | awk -F ';' '{sum += $4} {print sum}')
-        #awk -F ';' '$1 == "$" {sum += $4} END {print sum}' "$LOG_FILES"
-
-        #filtered_file=$(awk -F ';' -v user="$USER_NAME" '$1 != "" && $2 >= "$DATE_TIME" && $3 == user' "$LOG_FILES")
         filtered_file=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date' "$LOG_FILES" | grep "$USER_NAME")
 
         echo "$filtered_file" | awk -F ';' -v date="$DATE_TIME" '
@@ -230,6 +224,93 @@ if [ "$STATUS_COMMAND" = "status" ]; then
     ;;
     esac
 fi
+
+if [ "$PROFIT_COMMAND" = "profit" ]; then
+
+    case "$FILTER" in
+
+    -a)
+        if [ -z "$LOG_FILES" ]; then
+            echo "error"
+            exit 0
+        fi
+
+        filtered_file=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date' "$LOG_FILES" | grep "$USER_NAME")
+
+        echo "$filtered_file" | awk -F ';' -v date="$DATE_TIME" '
+        $2 >= date { 
+            my_dict[$3] += $4 
+        } 
+        END { 
+            for (key in my_dict) 
+            { 
+                if (my_dict[key] > 0) 
+                {
+                    my_dict[key] *= 1.20;
+                }
+                printf "%s : %.4f\n", key, my_dict[key]
+            }
+        }' "$LOG_FILES"
+    ;;
+
+    -b)
+        if [ -z "$LOG_FILES" ]; then
+            echo "error"
+            exit 0
+        fi
+
+        filtered_file=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date' "$LOG_FILES" | grep "$USER_NAME")
+
+        echo "$filtered_file" | awk -F ';' -v date="$DATE_TIME" '
+        $2 >= date { 
+            my_dict[$3] += $4 
+        } 
+        END { 
+            for (key in my_dict) 
+            { 
+                if (my_dict[key] > 0) 
+                {
+                    my_dict[key] *= 1.20;
+                }
+                printf "%s : %.4f\n", key, my_dict[key]
+            }
+        }' "$LOG_FILES"
+    ;;
+
+    -c)
+        if [ -z "$LOG_FILES" ]; then
+            echo "error"
+            exit 0
+        fi
+
+        echo "test"
+
+        filtered_file=$(awk -F ';' -v curr="$CURRENCY" '$3 = curr' "$LOG_FILES" | grep "$USER_NAME")
+
+        echo "$filtered_file" | awk -F ';' -v curr="$CURRENCY" '
+        $3 = curr { 
+            my_dict[$3] += $4 
+        } 
+        END { 
+            for (key in my_dict) 
+            { 
+                if (my_dict[key] > 0) 
+                {
+                    my_dict[key] *= 1.20;
+                }
+                printf "%s : %.4f\n", key, my_dict[key]
+            }
+        }' "$LOG_FILES"
+    ;;
+
+    *)
+        READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME | awk -F ';' '{print $3}' | uniq)
+        echo "$READ_INPUT"
+    ;;
+    esac
+fi
+
+
 
 if [ "$HELP" = "-h" ] || [ "$HELP" = "-h" ]; then
     print_help
