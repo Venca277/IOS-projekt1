@@ -126,13 +126,12 @@ done
 if [ -z "$HELP" ] && [ -z "$CURRENT_CURRENCY" ] && [ -z "$BEFORE_TIME" ] && [ -z "$AFTER_TIME" ] && [ -z "$PROFIT_COMMAND" ] && [ -z "$STATUS_COMMAND" ] && [ -z "$LISTING_COMMAND" ]; then
     
     if [ -z "$USER_NAME" ]; then
-        echo "Error input occured"
+        echo "Use -h or --help to display MANUAL for XTF"
     else
         READ_INPUT="cat $LOG_FILES | grep $USER_NAME"
         echo "$READ_INPUT"
     fi
 fi
-
 
 
 if [ "$LISTING_COMMAND" = "list" ]; then
@@ -332,15 +331,31 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
     esac
 fi
 
+if [ -n "$FILTER" ]; then
+    case "$FILTER" in
 
+    -a)
+        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date {print $0}'  "$LOG_FILES" | grep "$USER_NAME")
+        echo "$READ_INPUT"
+    ;;
+
+    -b)
+        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 <= date {print $0}' "$LOG_FILES" | grep "$USER_NAME")
+        echo "$READ_INPUT"
+    ;;
+
+    -c)
+        READ_INPUT=$(cat $LOG_FILES | grep $CURRENCY)
+        echo "$READ_INPUT"
+    ;;
+    esac
+
+fi
 
 if [ "$HELP" = "-h" ] || [ "$HELP" = "--help" ]; then
     print_help
     exit
 fi
-
-
-
 
 READ_INPUT="gzip -d -c $COMPRIMATED_LOG_FILES | cat $LOG_FILES - | sort"
 
