@@ -335,12 +335,12 @@ if [ -n "$FILTER" ]; then
     case "$FILTER" in
 
     -a)
-        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date {print $0}'  "$LOG_FILES" | grep "$USER_NAME")
+        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date {print $0}'  "$LOG_FILES")
         echo "$READ_INPUT"
     ;;
 
     -b)
-        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 <= date {print $0}' "$LOG_FILES" | grep "$USER_NAME")
+        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 <= date {print $0}' "$LOG_FILES")
         echo "$READ_INPUT"
     ;;
 
