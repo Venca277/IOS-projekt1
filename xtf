@@ -139,23 +139,27 @@ if [ "$LISTING_COMMAND" = "list" ]; then
     case "$FILTER" in
 
     -a)
-        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 > date' $LOG_FILES | grep $USER_NAME)
+        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 > date {print $0}' "$LOG_FILES" | grep "$USER_NAME")
         echo "$READ_INPUT"
+        exit 0
         ;;
 
     -b)
-        READ_INPUT=$(awk -v date="$DATE_TIME" '$0 < date' $LOG_FILES | grep $USER_NAME)
+        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 < date {print $0}' "$LOG_FILES" | grep "$USER_NAME")
         echo "$READ_INPUT"
+        exit 0
         ;;
 
     -c)
         READ_INPUT=$(cat $LOG_FILES | grep $CURRENCY | grep $USER_NAME)
         echo "$READ_INPUT"
+        exit 0
         ;;
 
     *)
         READ_INPUT=$(cat $LOG_FILES | grep $USER_NAME)
         echo "$READ_INPUT"
+        exit 0
         ;;
     esac
 
