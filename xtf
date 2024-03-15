@@ -5,7 +5,29 @@ export LC_NUMERIC=en_US.UTF-8
 
 print_help()
 {
-    echo "NATer"
+    echo "========================================================================"
+    echo "Help MANUAL for XTF script"
+    echo "========================================================================"
+    echo "------------------------------------------------------------------------"
+    echo "COMMANDS for XTF:"
+    echo "                                                                        "
+    echo "  list [USER_NAME] : lists all log lines containing USER_NAME           "
+    echo "  list-currency [USER_NAME] : lists all sorted currencies in logs       "
+    echo "  status [USER_NAME] : display status of all currencies for USER        "
+    echo "  profit [USER_NAME] : display status of all currencies with            "
+    echo "                       added profit for USER                            "
+    echo "                                                                        "
+    echo "FILTERS for XTF:                                                        "
+    echo "                                                                        "
+    echo "  -a [DATE_TIME] : in combination with one of previous commands         "
+    echo "                   displays logs AFTER given DATE_TIME                  "
+    echo "  -b [DATE_TIME] : in combination with one of previous commands         "
+    echo "                   displays logs BEFORE given DATE_TIME                 "
+    echo "  -c [CURRENCY] : in combination with one of previous commands          "
+    echo "                  displays logs FOR selected CURRENCY                   "
+    echo "                                                                        "
+    echo "  (when no COMMAND is used for FILTERs LIST command is used automaticly)"
+    echo "------------------------------------------------------------------------"
 }
 
 LOG_FILES=""
@@ -312,7 +334,7 @@ fi
 
 
 
-if [ "$HELP" = "-h" ] || [ "$HELP" = "-h" ]; then
+if [ "$HELP" = "-h" ] || [ "$HELP" = "--help" ]; then
     print_help
     exit
 fi
