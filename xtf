@@ -257,9 +257,7 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
     case "$FILTER" in
 
     -a)
-        filtered_file=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date' "$LOG_FILES" | grep "$USER_NAME")
-
-        echo "$filtered_file" | awk -F ';' -v date="$DATE_TIME" '
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v date="$DATE_TIME" '
         $2 >= date { 
             my_dict[$3] += $4 
         } 
@@ -272,14 +270,13 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
-        }' "$LOG_FILES"
+        }'
+        exit 0
     ;;
 
     -b)
-        filtered_file=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date' "$LOG_FILES" | grep "$USER_NAME")
-
-        echo "$filtered_file" | awk -F ';' -v date="$DATE_TIME" '
-        $2 >= date { 
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v date="$DATE_TIME" '
+        $2 <= date { 
             my_dict[$3] += $4 
         } 
         END { 
@@ -291,14 +288,13 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
-        }' "$LOG_FILES"
+        }'
+        exit 0
     ;;
 
     -c)
-        filtered_file=$(awk -F ';' -v curr="$CURRENCY" '$3 = curr' "$LOG_FILES" | grep "$USER_NAME")
-
-        echo "$filtered_file" | awk -F ';' -v curr="$CURRENCY" '
-        $3 = curr { 
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v curr="$CURRENCY" '
+        $3 == curr { 
             my_dict[$3] += $4 
         } 
         END { 
@@ -310,13 +306,12 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
-        }' "$LOG_FILES"
+        }'
+        exit 0
     ;;
 
     *)
-        filtered_file=$(awk -F ';' '{true}' "$LOG_FILES" | grep "$USER_NAME")
-
-        echo "$filtered_file" | awk -F ';' '
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' '
         { 
             my_dict[$3] += $4 
         } 
@@ -329,7 +324,8 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
-        }' "$LOG_FILES"
+        }'
+        exit 0
     ;;
     esac
 fi
@@ -339,28 +335,15 @@ if [ -n "$FILTER" ]; then
     case "$FILTER" in
 
     -a)
-        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 >= date {print $0}'  "$LOG_FILES")
-        echo "$READ_INPUT"
+        echo "$READ_INPUT" | awk -F ';' -v date="$DATE_TIME" '$2 >= date {print $0}'
     ;;
 
     -b)
-        READ_INPUT=$(awk -F ';' -v date="$DATE_TIME" '$2 <= date {print $0}' "$LOG_FILES")
-        echo "$READ_INPUT"
+        echo "$READ_INPUT" | awk -F ';' -v date="$DATE_TIME" '$2 <= date {print $0}'
     ;;
 
     -c)
-        READ_INPUT=$(cat $LOG_FILES | grep $CURRENCY)
-        echo "$READ_INPUT"
+        echo "$READ_INPUT" | grep "$CURRENCY"
     ;;
     esac
 fi
-
-
-
-
-READ_FILTERED="eval $READ_INPUT | awk -F ';' 'if(\$1 > $DATE_TIME &&) {print \$0}'"
-
-
-
-
-
