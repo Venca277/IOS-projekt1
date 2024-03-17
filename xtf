@@ -37,9 +37,6 @@ LISTING_COMMAND=""
 STATUS_COMMAND=""
 PROFIT_COMMAND=""
 
-AFTER_TIME=""
-BEFORE_TIME=""
-CURRENT_CURRENCY=""
 CURRENCY=""
 
 FILTER=""
@@ -49,7 +46,7 @@ DATE_TIME=""
 
 USER_NAME=""
 
-filtered_file=""
+XTF_PROFIT=""
 
 
 while [ "$#" -gt 0 ]; do
@@ -71,7 +68,6 @@ while [ "$#" -gt 0 ]; do
     ;;
 
     -a)
-        AFTER_TIME="$1"
         FILTER="$1"
         shift
         DATE_TIME="$1"
@@ -79,7 +75,6 @@ while [ "$#" -gt 0 ]; do
     ;;
     
     -b)
-        BEFORE_TIME="$1"
         FILTER="$1"
         shift
         DATE_TIME="$1"
@@ -87,7 +82,6 @@ while [ "$#" -gt 0 ]; do
     ;;
     
     -c)
-        CURRENT_CURRENCY="$1"
         FILTER="$1"
         shift
         CURRENCY="$1"
@@ -129,28 +123,18 @@ if [ "$HELP" = "-h" ] || [ "$HELP" = "--help" ]; then
 fi
 
 if [ -n "$COMPRIMATED_LOG_FILES" ]; then
-           READ_INPUT=$(gzip -d -c "$COMPRIMATED_LOG_FILES" | cat "$LOG_FILES" - | sort)
+    READ_INPUT=$(gzip -d -c "$COMPRIMATED_LOG_FILES" | sort)
 fi
 
-if [ -z "$LOG_FILES" ]; then
-            echo "File error"
-            exit 0
-else
-           READ_INPUT="${READ_INPUT}$(cat "$LOG_FILES")"
+if [ -z "$LOG_FILES" ] && [ -z "$READ_INPUT" ]; then
+    echo "File error"
+    exit 0
 fi
 
-if [ -z "$HELP" ] && [ -z "$CURRENT_CURRENCY" ] && [ -z "$BEFORE_TIME" ] && [ -z "$AFTER_TIME" ] && [ -z "$PROFIT_COMMAND" ] && [ -z "$STATUS_COMMAND" ] && [ -z "$LISTING_COMMAND" ]; then
-    
-    if [ -z "$USER_NAME" ]; then
-        echo "Use -h or --help to display MANUAL for XTF"
-        exit 0
-    else
-        READ_INPUT=$(cat "$LOG_FILES" | grep "$USER_NAME")
-        echo "$READ_INPUT"
-        exit 0
-    fi
+if [ -n "$LOG_FILES" ]; then
+    #READ_INPUT="${READ_INPUT}$(cat "$LOG_FILES")"
+    READ_INPUT="${READ_INPUT} $(printf '\n' && cat "$LOG_FILES")"
 fi
-
 
 if [ "$LISTING_COMMAND" = "list" ]; then
 
@@ -257,16 +241,16 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
     case "$FILTER" in
 
     -a)
-        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v date="$DATE_TIME" '
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v xtf_profit="${XTF_PROFIT:-1.20}" -v date="$DATE_TIME" '
         $2 >= date { 
             my_dict[$3] += $4 
         } 
         END { 
             for (key in my_dict) 
             { 
-                if (my_dict[key] > 0) 
+                if (my_dict[key] > 0)
                 {
-                    my_dict[key] *= 1.20;
+                    my_dict[key] *= xtf_profit;
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
@@ -275,7 +259,7 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
     ;;
 
     -b)
-        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v date="$DATE_TIME" '
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v xtf_profit="${XTF_PROFIT:-1.20}" -v date="$DATE_TIME" '
         $2 <= date { 
             my_dict[$3] += $4 
         } 
@@ -284,7 +268,7 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
             { 
                 if (my_dict[key] > 0) 
                 {
-                    my_dict[key] *= 1.20;
+                    my_dict[key] *= xtf_profit;
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
@@ -293,7 +277,7 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
     ;;
 
     -c)
-        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v curr="$CURRENCY" '
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v xtf_profit="${XTF_PROFIT:-1.20}" -v curr="$CURRENCY" '
         $3 == curr { 
             my_dict[$3] += $4 
         } 
@@ -302,7 +286,7 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
             { 
                 if (my_dict[key] > 0) 
                 {
-                    my_dict[key] *= 1.20;
+                    my_dict[key] *= xtf_profit;
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
@@ -311,7 +295,7 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
     ;;
 
     *)
-        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' '
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v xtf_profit="${XTF_PROFIT:-1.20}" '
         { 
             my_dict[$3] += $4 
         } 
@@ -320,7 +304,7 @@ if [ "$PROFIT_COMMAND" = "profit" ]; then
             { 
                 if (my_dict[key] > 0) 
                 {
-                    my_dict[key] *= 1.20;
+                    my_dict[key] *= xtf_profit;
                 }
                 printf "%s : %.4f\n", key, my_dict[key]
             }
@@ -335,15 +319,30 @@ if [ -n "$FILTER" ]; then
     case "$FILTER" in
 
     -a)
-        echo "$READ_INPUT" | awk -F ';' -v date="$DATE_TIME" '$2 >= date {print $0}'
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v date="$DATE_TIME" '$2 >= date {printf "%s\n", $0}'
+        exit 0
     ;;
 
     -b)
-        echo "$READ_INPUT" | awk -F ';' -v date="$DATE_TIME" '$2 <= date {print $0}'
+        echo "$READ_INPUT" | grep "$USER_NAME" | awk -F ';' -v date="$DATE_TIME" '$2 <= date {printf "%s\n", $0}'
+        exit 0
     ;;
 
     -c)
-        echo "$READ_INPUT" | grep "$CURRENCY"
+        echo "$READ_INPUT" | grep "$USER_NAME" | grep "$CURRENCY"
+        exit 0
     ;;
     esac
 fi
+
+if [ -z "$HELP" ] && [ -z "$PROFIT_COMMAND" ] && [ -z "$STATUS_COMMAND" ] && [ -z "$LISTING_COMMAND" ]; then
+    
+    if [ -z "$USER_NAME" ]; then
+        echo "Use -h or --help to display MANUAL for XTF"
+        exit 0
+    else
+        echo "$READ_INPUT" | grep "$USER_NAME"
+        exit 0
+    fi
+fi
+¨
